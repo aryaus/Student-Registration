@@ -8,10 +8,14 @@ package Linda;
 import java.sql.PreparedStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 
 
@@ -26,6 +30,7 @@ public class Registration extends javax.swing.JFrame {
      */
     public Registration() {
         initComponents();
+        table_update();
     }
 
     /**
@@ -72,8 +77,18 @@ public class Registration extends javax.swing.JFrame {
         });
 
         jButton2.setText("Edit");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         jButton3.setText("Delete");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -139,6 +154,11 @@ public class Registration extends javax.swing.JFrame {
                 return types [columnIndex];
             }
         });
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -178,24 +198,36 @@ public class Registration extends javax.swing.JFrame {
 
      Connection con1;
      PreparedStatement insert;
-     
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
-        String name = txtname.getText();
-        String number = txtnumber.getText();
-        String course = txtcourse.getText();
-       
-        
-        try {
+     private void table_update(){
+         int c;
+         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             con1 = DriverManager.getConnection("jdbc:mysql://localhost/linda?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Europe/Berlin","root","Arya914?");
-            insert = con1.prepareStatement("insert into record(name,number,course)values(?,?,?)");
-            insert.setString(1,name);
-            insert.setString(2,number);
-            insert.setString(3,course);
-            insert.executeUpdate();
+            insert = con1.prepareStatement("select * from record");
+            ResultSet rs = insert.executeQuery();
+            ResultSetMetaData Rss = rs.getMetaData();
             
-            JOptionPane.showMessageDialog(this, "record Added");
+            c = Rss.getColumnCount();
+            
+            DefaultTableModel Df = (DefaultTableModel)jTable1.getModel();
+            Df.setRowCount(0);
+            
+            while (rs.next()){
+                Vector v2 = new Vector();
+                
+                for(int i = 0; i<=c; i++){
+                    v2.add(rs.getString("id"));
+                    v2.add(rs.getString("name"));
+                    v2.add(rs.getString("number"));
+                    v2.add(rs.getString("course"));
+                }
+                Df.addRow(v2);
+            }
+            
+            txtname.setText("");
+            txtnumber.setText("");
+            txtcourse.setText("");
+            txtname.requestFocus();
             
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(Registration.class.getName()).log(Level.SEVERE, null, ex);
@@ -203,7 +235,7 @@ public class Registration extends javax.swing.JFrame {
         catch (SQLException ex) {
             Logger.getLogger(Registration.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }                                        
 
     /**
      * @param args the command line arguments
@@ -238,7 +270,131 @@ public class Registration extends javax.swing.JFrame {
                 new Registration().setVisible(true);
             }
         });
-    }
+     }
+     
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        String name = txtname.getText();
+        String number = txtnumber.getText();
+        String course = txtcourse.getText();
+       
+        
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            con1 = DriverManager.getConnection("jdbc:mysql://localhost/linda?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Europe/Berlin","root","Arya914?");
+            insert = con1.prepareStatement("insert into record(name,number,course)values(?,?,?)");
+            insert.setString(1,name);
+            insert.setString(2,number);
+            insert.setString(3,course);
+            insert.executeUpdate();
+            
+            JOptionPane.showMessageDialog(this, "record Added");
+            table_update();
+            
+            txtname.setText("");
+            txtnumber.setText("");
+            txtcourse.setText("");
+            txtname.requestFocus();
+            
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(Registration.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        catch (SQLException ex) {
+            Logger.getLogger(Registration.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        // TODO add your handling code here:
+        DefaultTableModel Df = (DefaultTableModel)jTable1.getModel();
+        int selectedIndex = jTable1.getSelectedRow();
+        
+        txtname.setText(Df.getValueAt(selectedIndex, 1).toString());
+        txtnumber.setText(Df.getValueAt(selectedIndex, 2).toString());
+        txtcourse.setText(Df.getValueAt(selectedIndex, 3).toString());
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+        DefaultTableModel Df = (DefaultTableModel)jTable1.getModel();
+        int selectedIndex = jTable1.getSelectedRow();
+
+        try {
+            
+            int id = Integer.parseInt(Df.getValueAt(selectedIndex, 0).toString());
+            String name = txtname.getText();
+            String number = txtnumber.getText();
+            String course = txtcourse.getText();
+        
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            con1 = DriverManager.getConnection("jdbc:mysql://localhost/linda?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Europe/Berlin","root","Arya914?");
+            insert = con1.prepareStatement("update record set name=?,number=?,course=? where id=?");
+            insert.setString(1,name);
+            insert.setString(2,number);
+            insert.setString(3,course);
+            insert.setInt(4,id);
+            insert.executeUpdate();
+            
+            JOptionPane.showMessageDialog(this, "record update");
+            table_update();
+            
+            txtname.setText("");
+            txtnumber.setText("");
+            txtcourse.setText("");
+            txtname.requestFocus();
+            
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(Registration.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        catch (SQLException ex) {
+            Logger.getLogger(Registration.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        // TODO add your handling code here:
+        DefaultTableModel Df = (DefaultTableModel)jTable1.getModel();
+        int selectedIndex = jTable1.getSelectedRow();
+
+        
+        try {
+            
+            int id = Integer.parseInt(Df.getValueAt(selectedIndex, 0).toString());
+           int dialogResult = JOptionPane.showConfirmDialog(null, "Do you want to delete the record?", "Warning", JOptionPane.YES_NO_OPTION);
+            
+           if (dialogResult == JOptionPane.YES_OPTION){
+            
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            con1 = DriverManager.getConnection("jdbc:mysql://localhost/linda?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Europe/Berlin","root","Arya914?");
+            insert = con1.prepareStatement("delete from record where id=?");
+            
+            insert.setInt(1,id);
+            insert.executeUpdate();
+            
+            JOptionPane.showMessageDialog(this, "record deleted");
+            table_update();
+            
+            txtname.setText("");
+            txtnumber.setText("");
+            txtcourse.setText("");
+            txtname.requestFocus();
+            
+           } 
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(Registration.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        catch (SQLException ex) {
+            Logger.getLogger(Registration.class.getName()).log(Level.SEVERE, null, ex);
+        }
+           
+           
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    /**
+     * @param args the command line arguments
+     */
+   
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
